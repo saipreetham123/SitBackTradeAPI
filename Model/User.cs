@@ -14,8 +14,8 @@ namespace SitBackTradeAPI.Model
         [Required]
         public string? LastName { get; set; }
 
-        [Required]
-        public string? UserN { get; set; }
+        //[Required]
+        //public string? UserN { get; set; }
 
         public Role? Role { get; set; }
 

@@ -39,28 +39,27 @@ namespace SitBackTradeAPI.Controllers
             {
                 var user = new User
                 {
-                    UserName = model.UserN,
                     Email = model.Email,
                     FirstName = model.FirstName!,
                     LastName = model.LastName!,
-                    Role = Enum.Parse<Role>(model.Role),
-                    UserN = model.UserN!,
-                    Wallet = 0
+                    Role = (Role)Enum.Parse(typeof(Role), model.Role),
+                    Wallet = 0,
+                    UserName = model.UserN
                 };
 
                 var result = await _userManager.CreateAsync(user, model.Password);
 
                 if (result.Succeeded && user.Role == Role.Seller)
                 {
-                    //var store = new Store
-                    //{
-                    //    StoreName = model.StoreName, // Make sure to add StoreName to your RegisterModel
-                    //    UserId = user.Id,
-                    //    // Add any additional properties for the Store model here
-                    //};
+                    var store = new Store
+                    {
+                        StoreName = model.StoreName, // Make sure to add StoreName to your RegisterModel
+                        UserId = user.Id,
+                        // Add any additional properties for the Store model here
+                    };
 
-                    //await _context!.Stores!.AddAsync(store);
-                    //await _context.SaveChangesAsync();
+                    await _context!.Stores!.AddAsync(store);
+                    await _context.SaveChangesAsync();
 
                     return Ok(new { IsSeller = true });
                 }
@@ -125,7 +124,7 @@ namespace SitBackTradeAPI.Controllers
             return Ok(new { Message = "User logged out successfully" });
         }
 
-        [Authorize]
+        [Authorize(Roles = nameof(Role.Seller))]
         [HttpPost("create-store")]
         public async Task<IActionResult> CreateStore(Store model)
         {
