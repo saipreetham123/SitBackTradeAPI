@@ -8,6 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 using SitBackTradeAPI.Data;
 using SitBackTradeAPI.Model;
 using System;
+using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -51,6 +52,14 @@ namespace SitBackTradeAPI.Controllers
 
                 if (result.Succeeded && user.Role == Role.Seller)
                 {
+                    var claims = new[]
+                    {
+                        new Claim(JwtRegisteredClaimNames.Sub, user.Id),
+                        new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName),
+                        new Claim(ClaimTypes.Email, user.Email),
+                        new Claim(ClaimTypes.Role, user.Role.ToString()!)
+                    };
+
                     var store = new Store
                     {
                         StoreName = model.StoreName, // Make sure to add StoreName to your RegisterModel
@@ -60,7 +69,7 @@ namespace SitBackTradeAPI.Controllers
 
                     await _context!.Stores!.AddAsync(store);
                     await _context.SaveChangesAsync();
-
+                    await _signInManager.SignInAsync(user, isPersistent: false);
                     return Ok(new { IsSeller = true });
                 }
                 else if(result.Succeeded && user.Role == Role.Buyer)
@@ -124,7 +133,7 @@ namespace SitBackTradeAPI.Controllers
             return Ok(new { Message = "User logged out successfully" });
         }
 
-        [Authorize(Roles = nameof(Role.Seller))]
+        [Authorize(Roles = nameof(Role.Seller) + "," + nameof(Role.Admin))]
         [HttpPost("create-store")]
         public async Task<IActionResult> CreateStore(Store model)
         {

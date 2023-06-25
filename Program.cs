@@ -9,6 +9,7 @@ using Microsoft.OpenApi.Models;
 using System.Reflection.Metadata;
 using Swashbuckle.AspNetCore.Filters;
 using SitBackTradeAPI.MiddleWare;
+using Microsoft.Extensions.Hosting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -68,6 +69,21 @@ builder.Services.AddCors(options =>
             .AllowAnyHeader());
 });
 var app = builder.Build();
+
+// Seed custom roles
+using (var scope = app.Services.CreateScope())
+{
+    var serviceProvider = scope.ServiceProvider;
+    var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+    foreach (var roleName in Enum.GetNames<Role>())
+    {
+        if (!await roleManager.RoleExistsAsync(roleName))
+        {
+            await roleManager.CreateAsync(new IdentityRole { Name = roleName });
+        }
+    }
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

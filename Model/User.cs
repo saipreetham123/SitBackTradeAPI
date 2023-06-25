@@ -29,7 +29,8 @@ namespace SitBackTradeAPI.Model
     public enum Role
     {
         Seller,
-        Buyer
+        Buyer,
+        Admin
     }
 
 }
